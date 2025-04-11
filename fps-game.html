@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FPS Game - Roblox Rivals Style</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #game-ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 18px;
+      z-index: 10;
+    }
+
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      border: 2px solid red;
+      border-radius: 50%;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-ui">
+    <p>Score: <span id="score">0</span></p>
+    <p>Ammo: <span id="ammo">10</span></p>
+  </div>
+  <div id="crosshair"></div>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Game variables
+    let score = 0;
+    let ammo = 10;
+    const targets = [];
+    const targetSize = 30;
+
+    // Update UI
+    const scoreEl = document.getElementById('score');
+    const ammoEl = document.getElementById('ammo');
+    function updateUI() {
+      scoreEl.textContent = score;
+      ammoEl.textContent = ammo;
+    }
+
+    // Target class
+    class Target {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = targetSize;
+      }
+      draw() {
+        ctx.fillStyle = 'blue';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Spawn targets
+    function spawnTarget() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      targets.push(new Target(x, y));
+    }
+    setInterval(spawnTarget, 2000); // Spawn a target every 2 seconds
+
+    // Game loop
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw targets
+      targets.forEach(target => target.draw());
+
+      requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+
+    // Handle shooting
+    canvas.addEventListener('click', (e) => {
+      if (ammo > 0) {
+        ammo--;
+        const clickX = e.clientX;
+        const clickY = e.clientY;
+
+        // Check if a target is hit
+        for (let i = targets.length - 1; i >= 0; i--) {
+          const target = targets[i];
+          const distance = Math.hypot(target.x - clickX, target.y - clickY);
+          if (distance < target.size) {
+            targets.splice(i, 1); // Remove the target
+            score++;
+            break;
+          }
+        }
+
+        updateUI();
+      } else {
+        alert('Out of ammo!');
+      }
+    });
+
+    // Reload ammo
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'r') {
+        ammo = 10;
+        updateUI();
+      }
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>
